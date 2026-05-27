@@ -1,0 +1,22 @@
+import axios from 'axios';
+
+const BASE = 'http://127.0.0.1:8000';
+
+// Ask a question — full pipeline
+export async function askQuestion(question) {
+  const res = await axios.post(`${BASE}/ask`, { question });
+  return res.data;
+}
+
+// Get prompt suggestions as user types
+export async function getSuggestions(partial) {
+  if (!partial || partial.length < 3) return [];
+  const res = await axios.post(`${BASE}/suggest`, { partial });
+  return res.data.suggestions || [];
+}
+
+// Health check
+export async function checkHealth() {
+  const res = await axios.get(`${BASE}/health`);
+  return res.data;
+}

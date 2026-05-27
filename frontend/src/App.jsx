@@ -1,0 +1,380 @@
+import { useState, useRef, useEffect } from 'react';
+import { askQuestion, getSuggestions } from './api/paneliq';
+import MessageBubble from './components/MessageBubble';
+import PromptSuggestions from './components/PromptSuggestions';
+
+const SIDEBAR_QUESTIONS = [
+  "Show me completes by market for last 6 months",
+  "Give me invites, clicks and completes for March 2026",
+  "What is the screenout breakdown by status group this year?",
+  "Which markets have the highest incidence rate in Q1 2026?",
+  "Compare monthly completes trend for last 12 months",
+  "Show me internal TPS vs external completes by market",
+  "Which projects are live right now?",
+  "Give me overall panel health summary for this year",
+  "What is the click rate and conversion rate by country?",
+  "Show fraud and quality rejection rate by market",
+];
+
+export default function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+  const suggestTimer = useRef(null);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Debounced suggestions
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInput(val);
+
+    clearTimeout(suggestTimer.current);
+    if (val.length >= 3) {
+      suggestTimer.current = setTimeout(async () => {
+        const s = await getSuggestions(val);
+        setSuggestions(s);
+        setShowSuggestions(s.length > 0);
+      }, 600);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const sendMessage = async (question) => {
+    const q = question || input.trim();
+    if (!q || loading) return;
+
+    setInput('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setLoading(true);
+
+    // Add user message
+    const userMsg = { role: 'user', content: q, id: Date.now() };
+    setMessages(prev => [...prev, userMsg]);
+
+    // Add loading AI message
+    const aiId = Date.now() + 1;
+    setMessages(prev => [...prev, {
+      role: 'ai',
+      id: aiId,
+      content: {
+        loading: true,
+        loadingText: 'Generating SQL and querying database...'
+      }
+    }]);
+
+    try {
+      const result = await askQuestion(q);
+
+      // Replace loading with real result
+      setMessages(prev => prev.map(m =>
+        m.id === aiId ? {
+          ...m,
+          content: {
+            loading: false,
+            sql: result.sql,
+            columns: result.columns,
+            rows: result.rows,
+            rowCount: result.row_count,
+            summary: result.summary,
+            followup: result.followup,
+            chartType: result.chart_type,
+            error: result.error || null,
+          }
+        } : m
+      ));
+
+    } catch (err) {
+      setMessages(prev => prev.map(m =>
+        m.id === aiId ? {
+          ...m,
+          content: {
+            loading: false,
+            error: 'Could not reach the backend. Is the server running?'
+          }
+        } : m
+      ));
+    }
+
+    setLoading(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'flex', height: '100vh',
+      fontFamily: "'Segoe UI', sans-serif",
+      background: '#0a0d14', color: '#e8edf5'
+    }}>
+
+      {/* SIDEBAR */}
+      <div style={{
+        width: '240px', background: '#111520',
+        borderRight: '1px solid #1e2a40',
+        display: 'flex', flexDirection: 'column',
+        flexShrink: 0, overflowY: 'auto'
+      }}>
+        {/* Logo */}
+        <div style={{
+          padding: '18px 16px',
+          borderBottom: '1px solid #1e2a40'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '8px',
+              background: 'linear-gradient(135deg, #00d4ff, #7c6af7)',
+              display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: '16px'
+            }}>
+              📊
+            </div>
+            <div>
+              <div style={{
+                fontWeight: '800', fontSize: '17px', letterSpacing: '-0.5px'
+              }}>
+                PanelIQ
+              </div>
+              <div style={{ fontSize: '10px', color: '#6b7a99' }}>
+                Panel Intelligence
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sample questions */}
+        <div style={{ padding: '14px 0' }}>
+          <div style={{
+            fontSize: '9px', fontWeight: '700',
+            letterSpacing: '1.5px', color: '#6b7a99',
+            padding: '0 16px 8px',
+            textTransform: 'uppercase'
+          }}>
+            Sample Questions
+          </div>
+          {SIDEBAR_QUESTIONS.map((q, i) => (
+            <div key={i}
+              onClick={() => sendMessage(q)}
+              style={{
+                padding: '8px 16px', fontSize: '12px',
+                color: '#8a9bc0', cursor: 'pointer',
+                borderLeft: '2px solid transparent',
+                transition: 'all 0.15s', lineHeight: '1.5'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#161c2c';
+                e.currentTarget.style.color = '#e8edf5';
+                e.currentTarget.style.borderLeftColor = '#00d4ff';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#8a9bc0';
+                e.currentTarget.style.borderLeftColor = 'transparent';
+              }}
+            >
+              <span style={{ color: '#00d4ff', marginRight: '6px', fontSize: '10px' }}>→</span>
+              {q}
+            </div>
+          ))}
+        </div>
+
+        {/* Module badge */}
+        <div style={{
+          marginTop: 'auto', padding: '14px 16px',
+          borderTop: '1px solid #1e2a40'
+        }}>
+          <div style={{
+            fontSize: '9px', color: '#6b7a99',
+            textTransform: 'uppercase', letterSpacing: '1px',
+            marginBottom: '6px'
+          }}>
+            Active Module
+          </div>
+          <div style={{
+            fontSize: '11px', padding: '4px 10px',
+            border: '1px solid #00e5a0',
+            color: '#00e5a0', borderRadius: '20px',
+            display: 'inline-block'
+          }}>
+            ● Engagement POC
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CHAT AREA */}
+      <div style={{
+        flex: 1, display: 'flex',
+        flexDirection: 'column', overflow: 'hidden'
+      }}>
+
+        {/* Header */}
+        <div style={{
+          padding: '12px 24px',
+          borderBottom: '1px solid #1e2a40',
+          background: '#111520',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', flexShrink: 0
+        }}>
+          <div style={{ fontSize: '13px', color: '#6b7a99' }}>
+            Connected to <span style={{ color: '#00d4ff' }}>KpiReports</span> ·
+            Model: <span style={{ color: '#7c6af7' }}>claude-sonnet-4-20250514</span>
+          </div>
+          <div style={{
+            fontSize: '10px', padding: '3px 10px',
+            border: '1px solid #00d4ff33',
+            color: '#00d4ff', borderRadius: '20px',
+            fontFamily: 'monospace'
+          }}>
+            ● LIVE
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div style={{
+          flex: 1, overflowY: 'auto',
+          padding: '24px', display: 'flex',
+          flexDirection: 'column', gap: '4px'
+        }}>
+
+          {/* Welcome screen */}
+          {messages.length === 0 && (
+            <div style={{
+              textAlign: 'center', padding: '40px 20px',
+              maxWidth: '560px', margin: '0 auto'
+            }}>
+              <div style={{
+                fontSize: '28px', fontWeight: '800',
+                background: 'linear-gradient(90deg, #00d4ff, #7c6af7)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '10px'
+              }}>
+                Ask your panel data anything.
+              </div>
+              <div style={{
+                fontSize: '13px', color: '#6b7a99',
+                lineHeight: '1.7', marginBottom: '20px'
+              }}>
+                Type a question in plain English. I'll query your
+                KpiReports database and return metrics,
+                charts and analyst insights instantly.
+              </div>
+              <div style={{
+                display: 'flex', flexWrap: 'wrap',
+                gap: '8px', justifyContent: 'center'
+              }}>
+                {['Invites', 'Clicks', 'Completes', 'IR%',
+                  'Click Rate', 'Conv. Rate', 'Screenouts',
+                  'Market Analysis'].map(tag => (
+                  <span key={tag} style={{
+                    fontSize: '11px', padding: '3px 10px',
+                    border: '1px solid #1e2a40',
+                    borderRadius: '20px', color: '#7c6af7'
+                  }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          {messages.map(msg => (
+            <MessageBubble key={msg.id} message={msg} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input area */}
+        <div style={{
+          padding: '14px 20px',
+          borderTop: '1px solid #1e2a40',
+          background: '#111520', flexShrink: 0
+        }}>
+          {/* Suggestions */}
+          {showSuggestions && (
+            <PromptSuggestions
+              suggestions={suggestions}
+              onSelect={(s) => {
+                setInput(s);
+                setShowSuggestions(false);
+                inputRef.current?.focus();
+              }}
+            />
+          )}
+
+          {/* Input box */}
+          <div style={{
+            display: 'flex', gap: '10px', alignItems: 'flex-end',
+            background: '#161c2c', border: '1px solid #1e2a40',
+            borderRadius: '12px', padding: '10px 14px',
+            transition: 'border-color 0.2s'
+          }}
+            onFocus={e => e.currentTarget.style.borderColor = '#00d4ff'}
+            onBlur={e => e.currentTarget.style.borderColor = '#1e2a40'}
+          >
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything about your panel data... e.g. Show completes by market for March 2026"
+              rows={1}
+              style={{
+                flex: 1, background: 'none', border: 'none',
+                outline: 'none', color: '#e8edf5',
+                fontFamily: "'Segoe UI', sans-serif",
+                fontSize: '13px', resize: 'none',
+                maxHeight: '100px', lineHeight: '1.5'
+              }}
+              onInput={e => {
+                e.target.style.height = 'auto';
+                e.target.style.height =
+                  Math.min(e.target.scrollHeight, 100) + 'px';
+              }}
+            />
+            <button
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              style={{
+                background: loading || !input.trim()
+                  ? '#1e2a40'
+                  : 'linear-gradient(135deg, #00d4ff, #7c6af7)',
+                border: 'none', borderRadius: '8px',
+                width: '36px', height: '36px',
+                cursor: loading || !input.trim() ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'center', flexShrink: 0,
+                transition: 'all 0.2s', fontSize: '16px'
+              }}
+            >
+              {loading ? '⏳' : '➤'}
+            </button>
+          </div>
+          <div style={{
+            fontSize: '10px', color: '#6b7a99',
+            textAlign: 'center', marginTop: '6px'
+          }}>
+            Powered by Claude AI · KPISurveyData + KPIReportProjectData ·
+            Engagement Surveys excluded automatically
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
