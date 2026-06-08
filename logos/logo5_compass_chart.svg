@@ -1,0 +1,85 @@
+<svg width="400" height="420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <linearGradient id="g5bar1" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <linearGradient id="g5bar2" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#7c6af7" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <filter id="glow5">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="compass-clip">
+      <circle cx="200" cy="175" r="108"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="420" fill="#0a0d14" rx="24"/>
+
+  <!-- Outer compass ring -->
+  <circle cx="200" cy="175" r="115" fill="none" stroke="#1e2a40" stroke-width="2"/>
+
+  <!-- Tick marks around compass -->
+  <g stroke="#2a3850" stroke-width="1.5">
+    <!-- Major ticks at 0, 90, 180, 270 -->
+    <line x1="200" y1="55"  x2="200" y2="67"  stroke="url(#g5)" stroke-width="3"/>
+    <line x1="320" y1="175" x2="308" y2="175" stroke="url(#g5)" stroke-width="3"/>
+    <line x1="200" y1="295" x2="200" y2="283" stroke="url(#g5)" stroke-width="3"/>
+    <line x1="80"  y1="175" x2="92"  y2="175" stroke="url(#g5)" stroke-width="3"/>
+    <!-- Minor ticks -->
+    <line x1="281" y1="94"  x2="275" y2="104"/>
+    <line x1="119" y1="94"  x2="125" y2="104"/>
+    <line x1="281" y1="256" x2="275" y2="246"/>
+    <line x1="119" y1="256" x2="125" y2="246"/>
+  </g>
+
+  <!-- N / S / E / W labels -->
+  <text x="200" y="51" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#00d4ff">N</text>
+  <text x="330" y="180" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#6b7a99">E</text>
+  <text x="200" y="310" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#6b7a99">S</text>
+  <text x="70"  y="180" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#6b7a99">W</text>
+
+  <!-- Inner compass area fill -->
+  <circle cx="200" cy="175" r="108" fill="#0d1525"/>
+
+  <!-- Bar chart inside compass (clipped) -->
+  <g clip-path="url(#compass-clip)">
+    <!-- Grid lines -->
+    <line x1="100" y1="240" x2="310" y2="240" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="100" y1="215" x2="310" y2="215" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="100" y1="190" x2="310" y2="190" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="100" y1="165" x2="310" y2="165" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="100" y1="140" x2="310" y2="140" stroke="#1e2a40" stroke-width="1"/>
+
+    <!-- Rising bars -->
+    <rect x="122" y="215" width="28" height="27" rx="3" fill="url(#g5bar1)"/>
+    <rect x="158" y="200" width="28" height="42" rx="3" fill="url(#g5bar1)" opacity="0.85"/>
+    <rect x="194" y="180" width="28" height="62" rx="3" fill="url(#g5bar2)" opacity="0.9"/>
+    <rect x="230" y="158" width="28" height="84" rx="3" fill="url(#g5bar2)"/>
+    <rect x="266" y="135" width="28" height="107" rx="3" fill="url(#g5)" opacity="0.8"/>
+
+    <!-- Trend arrow pointing NE -->
+    <polyline points="136,215 172,200 208,180 244,158 280,135" fill="none" stroke="#00e5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <!-- Arrow head -->
+    <polygon points="280,135 268,138 272,147" fill="#00e5a0" opacity="0.8"/>
+  </g>
+
+  <!-- Inner compass ring -->
+  <circle cx="200" cy="175" r="108" fill="none" stroke="url(#g5)" stroke-width="5" filter="url(#glow5)"/>
+
+  <!-- Center dot -->
+  <circle cx="200" cy="175" r="6" fill="url(#g5)" filter="url(#glow5)"/>
+  <circle cx="200" cy="175" r="3" fill="#0a0d14"/>
+
+  <!-- Wordmark -->
+  <text x="200" y="345" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#e8edf5" font-weight="300" letter-spacing="1.5">Panel<tspan font-weight="800" fill="url(#g5)">IQ</tspan></text>
+  <text x="200" y="369" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6b7a99" letter-spacing="4">PANEL INTELLIGENCE</text>
+</svg>

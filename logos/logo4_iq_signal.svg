@@ -1,0 +1,69 @@
+<svg width="400" height="420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g4h" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <linearGradient id="g4v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <linearGradient id="g4d" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <filter id="glow4">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="textglow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="420" fill="#0a0d14" rx="24"/>
+
+  <!-- Subtle grid background -->
+  <g opacity="0.06">
+    <line x1="50"  y1="60" x2="50"  y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="100" y1="60" x2="100" y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="150" y1="60" x2="150" y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="200" y1="60" x2="200" y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="250" y1="60" x2="250" y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="300" y1="60" x2="300" y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="350" y1="60" x2="350" y2="300" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="40" y1="100" x2="370" y2="100" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="40" y1="150" x2="370" y2="150" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="40" y1="200" x2="370" y2="200" stroke="#00d4ff" stroke-width="1"/>
+    <line x1="40" y1="250" x2="370" y2="250" stroke="#00d4ff" stroke-width="1"/>
+  </g>
+
+  <!-- The letter "I" as a signal waveform -->
+  <!-- Top bar of I -->
+  <rect x="68" y="78" width="80" height="12" rx="6" fill="url(#g4h)"/>
+  <!-- Bottom bar of I -->
+  <rect x="68" y="248" width="80" height="12" rx="6" fill="url(#g4h)"/>
+  <!-- Vertical stem replaced by ECG/signal wave -->
+  <polyline
+    points="108,90 108,145 88,145 88,165 128,165 128,185 88,185 88,205 128,205 128,225 108,225 108,248"
+    fill="none" stroke="url(#g4v)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"
+    filter="url(#glow4)"/>
+
+  <!-- The letter "Q" -->
+  <!-- Circle of Q -->
+  <circle cx="270" cy="172" r="75" fill="none" stroke="url(#g4d)" stroke-width="14" filter="url(#glow4)"/>
+  <!-- Inner circle subtle -->
+  <circle cx="270" cy="172" r="75" fill="none" stroke="url(#g4d)" stroke-width="2" opacity="0.3"/>
+  <!-- Q tail / bar chart bars inside Q -->
+  <rect x="238" y="188" width="12" height="28" rx="2" fill="#00d4ff" opacity="0.7"/>
+  <rect x="256" y="176" width="12" height="40" rx="2" fill="#7c6af7" opacity="0.8"/>
+  <rect x="274" y="163" width="12" height="53" rx="2" fill="#7c6af7"/>
+  <!-- Q tail stroke -->
+  <line x1="325" y1="222" x2="348" y2="248" stroke="url(#g4d)" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- Wordmark -->
+  <text x="200" y="357" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#6b7a99" font-weight="300" letter-spacing="6">PANEL INTELLIGENCE</text>
+  <text x="200" y="392" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#4a5568" letter-spacing="3">EST. 2026 · BORDERLESS ACCESS</text>
+</svg>
