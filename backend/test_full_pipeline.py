@@ -8,7 +8,7 @@ client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 def generate_sql(question: str) -> str:
     """Generate SQL from natural language question"""
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=1000,
         system=SCHEMA_CONTEXT,
         messages=[{"role": "user", "content": question}]

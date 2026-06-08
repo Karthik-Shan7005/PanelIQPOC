@@ -7,18 +7,31 @@ from result_formatter import clean_results, generate_summary, recommend_chart
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
+def _strip_code_fences(text: str) -> str:
+    """Remove markdown code fences Claude sometimes adds despite instructions."""
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        # drop opening fence line (```sql or ```)
+        lines = lines[1:]
+        # drop closing fence line if present
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    return text
+
 def generate_sql(question: str) -> str:
     """
     Send question to Claude with schema context.
     Returns generated SQL string.
     """
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=1000,
         system=SCHEMA_CONTEXT,
         messages=[{"role": "user", "content": question}]
     )
-    return response.content[0].text.strip()
+    return _strip_code_fences(response.content[0].text)
 
 def process_question(question: str) -> dict:
     """
