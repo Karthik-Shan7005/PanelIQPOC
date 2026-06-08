@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>PanelIQ — Starting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0d14;
+      color: #e8edf5;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+
+    .logo-mark {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      filter: drop-shadow(0 0 12px #00d4ff55);
+    }
+
+    .wordmark {
+      font-size: 26px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .wordmark span {
+      font-weight: 800;
+      background: linear-gradient(90deg, #00d4ff, #7c6af7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tagline {
+      font-size: 11px;
+      color: #6b7a99;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    .spinner-track {
+      width: 200px;
+      height: 3px;
+      background: #1e2a40;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .spinner-bar {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #00d4ff, #7c6af7);
+      border-radius: 2px;
+      animation: slide 1.4s ease-in-out infinite;
+    }
+
+    @keyframes slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+
+    .status {
+      font-size: 11px;
+      color: #6b7a99;
+      letter-spacing: 0.5px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50%       { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-mark">
+    <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#00d4ff"/>
+          <stop offset="100%" stop-color="#7c6af7"/>
+        </linearGradient>
+        <filter id="gw">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <rect x="8"  y="8"  width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="38" y="8"  width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="68" y="8"  width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="8"  y="38" width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="38" y="38" width="24" height="24" rx="5" fill="url(#lg)" filter="url(#gw)"/>
+      <rect x="68" y="38" width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="8"  y="68" width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="38" y="68" width="24" height="24" rx="4" fill="#1e2a40"/>
+      <rect x="68" y="68" width="24" height="24" rx="4" fill="#1e2a40"/>
+      <circle cx="50" cy="50" r="5.5" fill="#0a0d14"/>
+      <line x1="50" y1="40"   x2="50" y2="44.5" stroke="#0a0d14" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="50" y1="55.5" x2="50" y2="60"   stroke="#0a0d14" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="40" y1="50"   x2="44.5" y2="50" stroke="#0a0d14" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="55.5" y1="50" x2="60" y2="50"   stroke="#0a0d14" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="2.2" fill="#0a0d14"/>
+    </svg>
+  </div>
+  <div class="wordmark">Panel<span>IQ</span></div>
+  <div class="tagline">Panel Intelligence</div>
+  <div class="spinner-track">
+    <div class="spinner-bar"></div>
+  </div>
+  <div class="status">Starting analytics engine...</div>
+</body>
+</html>

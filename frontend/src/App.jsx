@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { askQuestion, getSuggestions } from './api/paneliq';
 import MessageBubble from './components/MessageBubble';
 import PromptSuggestions from './components/PromptSuggestions';
+import LogoPanelGrid from './components/LogoPanelGrid';
 
 const SIDEBAR_QUESTIONS = [
   "Show me completes by market for last 6 months",
@@ -136,14 +137,7 @@ export default function App() {
           borderBottom: '1px solid #1e2a40'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              background: 'linear-gradient(135deg, #00d4ff, #7c6af7)',
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontSize: '16px'
-            }}>
-              📊
-            </div>
+            <LogoPanelGrid size={36} />
             <div>
               <div style={{
                 fontWeight: '800', fontSize: '17px', letterSpacing: '-0.5px'
