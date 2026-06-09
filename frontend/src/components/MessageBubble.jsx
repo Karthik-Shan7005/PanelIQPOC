@@ -63,6 +63,19 @@ export default function MessageBubble({ message }) {
           </div>
         )}
 
+        {/* Cancelled state */}
+        {content.cancelled && !content.loading && (
+          <div style={{
+            background: '#1a1a24', border: '1px solid #3a3a5a',
+            borderRadius: '10px', padding: '10px 16px',
+            fontSize: '12px', color: '#6b7a99',
+            display: 'flex', alignItems: 'center', gap: '8px'
+          }}>
+            <span style={{ fontSize: '14px' }}>■</span>
+            Analysis stopped. Type a new question below.
+          </div>
+        )}
+
         {/* Error state */}
         {content.error && !content.loading && (
           <div style={{

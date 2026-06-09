@@ -2,9 +2,9 @@ import axios from 'axios';
 
 const BASE = 'http://127.0.0.1:8000';
 
-// Ask a question — full pipeline
-export async function askQuestion(question) {
-  const res = await axios.post(`${BASE}/ask`, { question });
+// Ask a question — full pipeline. Pass an AbortController signal to cancel.
+export async function askQuestion(question, signal) {
+  const res = await axios.post(`${BASE}/ask`, { question }, { signal });
   return res.data;
 }
 

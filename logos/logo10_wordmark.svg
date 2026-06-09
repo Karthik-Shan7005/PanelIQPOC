@@ -1,0 +1,67 @@
+<svg width="400" height="420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g10h" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <linearGradient id="g10v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <filter id="glow10">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="textglow10">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="400" height="420" fill="#0a0d14" rx="24"/>
+
+  <!-- Decorative horizontal rule above -->
+  <line x1="60" y1="108" x2="340" y2="108" stroke="#1e2a40" stroke-width="1"/>
+
+  <!-- "PANEL" — light weight, wide tracking -->
+  <text x="200" y="156" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif"
+    font-size="38" font-weight="200"
+    fill="#e8edf5" letter-spacing="16">PANEL</text>
+
+  <!-- Gradient rule between words -->
+  <rect x="60" y="168" width="280" height="2" rx="1" fill="url(#g10h)"/>
+  <!-- Glow on rule -->
+  <rect x="60" y="168" width="280" height="2" rx="1" fill="url(#g10h)" filter="url(#glow10)" opacity="0.6"/>
+
+  <!-- "IQ" — ultra bold, large, gradient -->
+  <text x="200" y="252" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif"
+    font-size="88" font-weight="900"
+    fill="url(#g10v)" filter="url(#textglow10)" letter-spacing="-4">IQ</text>
+
+  <!-- Decorative horizontal rule below IQ -->
+  <line x1="60" y1="268" x2="340" y2="268" stroke="#1e2a40" stroke-width="1"/>
+
+  <!-- Mini panel grid icon left of tagline -->
+  <g transform="translate(120, 284)">
+    <rect x="0"  y="0"  width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="11" y="0"  width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="22" y="0"  width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="0"  y="11" width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="11" y="11" width="8" height="8" rx="1.5" fill="url(#g10h)"/>
+    <rect x="22" y="11" width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="0"  y="22" width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="11" y="22" width="8" height="8" rx="1.5" fill="#1e2a40"/>
+    <rect x="22" y="22" width="8" height="8" rx="1.5" fill="#1e2a40"/>
+  </g>
+
+  <!-- Tagline text -->
+  <text x="218" y="295" text-anchor="start"
+    font-family="Segoe UI, Arial, sans-serif" font-size="9" fill="#6b7a99" letter-spacing="3">PANEL INTELLIGENCE</text>
+  <text x="218" y="310" text-anchor="start"
+    font-family="Segoe UI, Arial, sans-serif" font-size="9" fill="#3a4458" letter-spacing="2">BY BORDERLESS ACCESS</text>
+
+  <!-- Bottom accent line -->
+  <rect x="160" y="348" width="80" height="2" rx="1" fill="url(#g10h)" opacity="0.5"/>
+</svg>

@@ -140,15 +140,30 @@ app.whenReady().then(async () => {
   }
 });
 
-app.on('window-all-closed', () => {
+function killBackend() {
   if (backendProcess) {
-    backendProcess.kill();
+    try {
+      // On Windows, kill the whole process tree so child processes don't linger
+      if (process.platform === 'win32') {
+        require('child_process').spawnSync('taskkill', ['/pid', String(backendProcess.pid), '/f', '/t']);
+      } else {
+        backendProcess.kill('SIGTERM');
+      }
+    } catch (_) {}
+    backendProcess = null;
   }
+}
+
+app.on('window-all-closed', () => {
+  killBackend();
   app.quit();
 });
 
 app.on('before-quit', () => {
-  if (backendProcess) {
-    backendProcess.kill();
-  }
+  killBackend();
 });
+
+// Safety net: ensure cleanup even on unexpected exit
+process.on('exit', () => killBackend());
+process.on('SIGINT',  () => { killBackend(); process.exit(0); });
+process.on('SIGTERM', () => { killBackend(); process.exit(0); });

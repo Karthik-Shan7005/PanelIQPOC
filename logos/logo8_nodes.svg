@@ -1,20 +1,23 @@
-<svg width="100" height="100" viewBox="55 55 290 220" xmlns="http://www.w3.org/2000/svg">
+<svg width="400" height="420" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="fv-grad" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="g8" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#00d4ff"/>
       <stop offset="100%" stop-color="#7c6af7"/>
     </linearGradient>
-    <filter id="fv-glow8c">
+    <filter id="glow8c">
       <feGaussianBlur stdDeviation="6" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="fv-glow8s">
+    <filter id="glow8s">
       <feGaussianBlur stdDeviation="3" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <!-- Connection lines centre to outer -->
+  <rect width="400" height="420" fill="#0a0d14" rx="24"/>
+
+  <!-- Connection lines (drawn first, behind nodes) -->
+  <!-- Centre to each outer node -->
   <g stroke="#1e2a40" stroke-width="1.5" opacity="0.8">
     <line x1="200" y1="175" x2="200" y2="92"/>
     <line x1="200" y1="175" x2="275" y2="120"/>
@@ -24,8 +27,7 @@
     <line x1="200" y1="175" x2="92"  y2="196"/>
     <line x1="200" y1="175" x2="125" y2="120"/>
   </g>
-
-  <!-- Outer-to-outer dashed -->
+  <!-- Some outer-to-outer connections -->
   <g stroke="#1e2a40" stroke-width="1" opacity="0.4" stroke-dasharray="4,3">
     <line x1="200" y1="92"  x2="275" y2="120"/>
     <line x1="275" y1="120" x2="308" y2="196"/>
@@ -36,13 +38,13 @@
     <line x1="125" y1="120" x2="200" y2="92"/>
   </g>
 
-  <!-- Glowing accent lines -->
-  <line x1="200" y1="175" x2="275" y2="120" stroke="url(#fv-grad)" stroke-width="2" opacity="0.5"/>
+  <!-- Glowing lines from centre to key nodes -->
+  <line x1="200" y1="175" x2="275" y2="120" stroke="url(#g8)" stroke-width="2" opacity="0.5"/>
   <line x1="200" y1="175" x2="308" y2="196" stroke="#00d4ff" stroke-width="2" opacity="0.4"/>
   <line x1="200" y1="175" x2="200" y2="92"  stroke="#7c6af7" stroke-width="2" opacity="0.4"/>
 
   <!-- Outer nodes -->
-  <g filter="url(#fv-glow8s)">
+  <g filter="url(#glow8s)">
     <circle cx="200" cy="92"  r="9" fill="#7c6af7" opacity="0.85"/>
     <circle cx="275" cy="120" r="9" fill="#00d4ff" opacity="0.85"/>
     <circle cx="308" cy="196" r="9" fill="#00d4ff" opacity="0.7"/>
@@ -52,7 +54,7 @@
     <circle cx="125" cy="120" r="9" fill="#7c6af7" opacity="0.85"/>
   </g>
 
-  <!-- Inner dots -->
+  <!-- Inner dot on each outer node -->
   <g fill="#0a0d14">
     <circle cx="200" cy="92"  r="4"/>
     <circle cx="275" cy="120" r="4"/>
@@ -63,20 +65,25 @@
     <circle cx="125" cy="120" r="4"/>
   </g>
 
-  <!-- Central node -->
-  <circle cx="200" cy="175" r="28" fill="url(#fv-grad)" filter="url(#fv-glow8c)"/>
+  <!-- Central node — large, gradient, glowing -->
+  <circle cx="200" cy="175" r="28" fill="url(#g8)" filter="url(#glow8c)"/>
   <circle cx="200" cy="175" r="18" fill="#0a0d14"/>
-
-  <!-- Mini panel grid inside centre -->
+  <!-- Mini grid inside centre node (Panel Grid logo mark) -->
   <g transform="translate(189, 164)">
     <rect x="0"  y="0"  width="6" height="6" rx="1" fill="#1e2a40"/>
     <rect x="8"  y="0"  width="6" height="6" rx="1" fill="#1e2a40"/>
     <rect x="16" y="0"  width="6" height="6" rx="1" fill="#1e2a40"/>
     <rect x="0"  y="8"  width="6" height="6" rx="1" fill="#1e2a40"/>
-    <rect x="8"  y="8"  width="6" height="6" rx="1" fill="url(#fv-grad)"/>
+    <rect x="8"  y="8"  width="6" height="6" rx="1" fill="url(#g8)"/>
     <rect x="16" y="8"  width="6" height="6" rx="1" fill="#1e2a40"/>
     <rect x="0"  y="16" width="6" height="6" rx="1" fill="#1e2a40"/>
     <rect x="8"  y="16" width="6" height="6" rx="1" fill="#1e2a40"/>
     <rect x="16" y="16" width="6" height="6" rx="1" fill="#1e2a40"/>
   </g>
+
+  <!-- Wordmark -->
+  <text x="200" y="315" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#e8edf5" font-weight="300" letter-spacing="1.5">Panel<tspan font-weight="800" fill="url(#g8)">IQ</tspan></text>
+  <text x="200" y="338" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6b7a99" letter-spacing="4">PANEL INTELLIGENCE</text>
 </svg>

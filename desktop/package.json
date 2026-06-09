@@ -1,0 +1,45 @@
+{
+  "name": "paneliq-desktop",
+  "version": "1.0.0",
+  "description": "PanelIQ — Panel Intelligence powered by Claude AI",
+  "main": "main.js",
+  "author": "Borderless Access",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "build": {
+    "appId": "com.borderlessaccess.paneliq",
+    "productName": "PanelIQ",
+    "copyright": "Borderless Access",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "shortcutName": "PanelIQ"
+    },
+    "extraResources": [
+      {
+        "from": "backend-dist/",
+        "to": "backend/",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../frontend/dist/",
+        "to": "frontend/",
+        "filter": ["**/*"]
+      }
+    ]
+  }
+}

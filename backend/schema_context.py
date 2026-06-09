@@ -185,6 +185,31 @@ BUSINESS RULES — ALWAYS APPLY — NO EXCEPTIONS
    [Observed LOI]
 
 ================================================================
+MARKET / COUNTRY ALIASES — Always expand to full CountryName
+================================================================
+Users often type short codes. Always map these to the exact value
+stored in p.CountryName before writing any WHERE clause:
+
+  UK, uk, U.K., Britain, England  → 'United Kingdom'
+  US, us, U.S., USA, U.S.A.       → 'United States of America'
+  KSA, ksa, Saudi, Saudi Arabia   → 'Saudi Arabia'
+  UAE, uae, U.A.E.                 → 'United Arab Emirates'
+  IND, ind, India                  → 'India'
+  AUS, aus, Australia              → 'Australia'
+  GER, ger, Germany                → 'Germany'
+  FRA, fra, France                 → 'France'
+  SGP, SG, Singapore               → 'Singapore'
+  CAN, ca, Canada                  → 'Canada'
+
+Example — user asks "show completes for UK and UAE":
+  WHERE p.CountryName IN ('United Kingdom', 'United Arab Emirates')
+  (NOT WHERE p.CountryName IN ('UK', 'UAE'))
+
+If a country abbreviation is not in the list above, use the
+user's text as-is but apply LIKE for a partial match:
+  WHERE p.CountryName LIKE '%<term>%'
+
+================================================================
 DATE INTERPRETATION — Translate natural language to T-SQL
 ================================================================
 'March 2026'      → MONTH(COALESCE(s.SurveyStartTime,s.CreatedDate))=3 AND YEAR(...)=2026

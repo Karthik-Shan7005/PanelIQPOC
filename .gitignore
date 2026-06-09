@@ -36,6 +36,19 @@ frontend/node_modules/
 frontend/dist/
 frontend/.cache/
 
+# Desktop app — build outputs and dependencies
+desktop/node_modules/
+desktop/dist-electron/
+desktop/backend-dist/
+
+# PyInstaller outputs
+backend/build/
+backend/dist/
+*.spec
+
+# Temp Office lock files
+~$*
+
 # OS
 .DS_Store
 Thumbs.db

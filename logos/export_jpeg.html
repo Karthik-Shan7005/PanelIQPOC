@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>PanelIQ — Export Logos as JPEG</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #060810;
+      color: #e8edf5;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      padding: 40px 32px;
+    }
+    h1 { font-size: 24px; font-weight: 300; margin-bottom: 6px; }
+    h1 span { font-weight: 800; color: #00d4ff; }
+    .subtitle { font-size: 11px; color: #6b7a99; letter-spacing: 3px; margin-bottom: 40px; }
+    .grid {
+      display: flex; flex-wrap: wrap; gap: 28px; justify-content: center;
+      max-width: 1400px; margin: 0 auto 40px;
+    }
+    .card {
+      background: #0d1220; border: 1px solid #1e2a40;
+      border-radius: 14px; padding: 20px 16px 16px;
+      text-align: center; width: 260px;
+    }
+    .card img { width: 200px; height: 210px; object-fit: contain; display: block; margin: 0 auto 12px; border-radius: 8px; }
+    .card h2 { font-size: 12px; font-weight: 700; color: #00d4ff; margin-bottom: 10px; }
+    .btn {
+      display: inline-block; padding: 7px 20px;
+      background: linear-gradient(135deg, #00d4ff22, #7c6af722);
+      border: 1px solid #00d4ff55;
+      border-radius: 20px; color: #00d4ff;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .btn:hover { background: linear-gradient(135deg, #00d4ff44, #7c6af744); }
+    .btn-all {
+      display: block; margin: 0 auto 48px;
+      padding: 12px 40px; font-size: 13px; font-weight: 700;
+      background: linear-gradient(135deg, #00d4ff, #7c6af7);
+      border: none; border-radius: 30px; color: #0a0d14;
+      cursor: pointer; width: fit-content; letter-spacing: 1px;
+    }
+    .section-title {
+      text-align: center; font-size: 10px; color: #6b7a99;
+      letter-spacing: 3px; margin-bottom: 20px; text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Panel<span>IQ</span> — Logo Export</h1>
+<p class="subtitle">CLICK ANY LOGO TO DOWNLOAD AS JPEG · 400×420px · 95% QUALITY</p>
+
+<button class="btn-all" onclick="downloadAll()">Download All 10 Logos as JPEG</button>
+
+<p class="section-title">Original 5 Concepts</p>
+<div class="grid" id="grid1">
+  <div class="card">
+    <img src="logo1_data_lens.svg" id="img1"/>
+    <h2>Option 1 · Data Lens</h2>
+    <button class="btn" onclick="downloadJPEG('img1','PanelIQ_Logo1_DataLens.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo2_panel_grid.svg" id="img2"/>
+    <h2>Option 2 · Panel Grid + AI ★ Selected</h2>
+    <button class="btn" onclick="downloadJPEG('img2','PanelIQ_Logo2_PanelGrid.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo3_speech_bubble.svg" id="img3"/>
+    <h2>Option 3 · Ask Anything</h2>
+    <button class="btn" onclick="downloadJPEG('img3','PanelIQ_Logo3_SpeechBubble.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo4_iq_signal.svg" id="img4"/>
+    <h2>Option 4 · IQ Signal Wave</h2>
+    <button class="btn" onclick="downloadJPEG('img4','PanelIQ_Logo4_IQSignal.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo5_compass_chart.svg" id="img5"/>
+    <h2>Option 5 · Compass Chart</h2>
+    <button class="btn" onclick="downloadJPEG('img5','PanelIQ_Logo5_Compass.jpg')">Save as JPEG</button>
+  </div>
+</div>
+
+<p class="section-title">New 5 Concepts</p>
+<div class="grid" id="grid2">
+  <div class="card">
+    <img src="logo6_gauge.svg" id="img6"/>
+    <h2>Option 6 · Performance Gauge</h2>
+    <button class="btn" onclick="downloadJPEG('img6','PanelIQ_Logo6_Gauge.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo7_steps.svg" id="img7"/>
+    <h2>Option 7 · Rising Steps</h2>
+    <button class="btn" onclick="downloadJPEG('img7','PanelIQ_Logo7_Steps.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo8_nodes.svg" id="img8"/>
+    <h2>Option 8 · Network Nodes</h2>
+    <button class="btn" onclick="downloadJPEG('img8','PanelIQ_Logo8_Nodes.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo9_hexagon.svg" id="img9"/>
+    <h2>Option 9 · Hexagon Data</h2>
+    <button class="btn" onclick="downloadJPEG('img9','PanelIQ_Logo9_Hexagon.jpg')">Save as JPEG</button>
+  </div>
+  <div class="card">
+    <img src="logo10_wordmark.svg" id="img10"/>
+    <h2>Option 10 · Bold Wordmark</h2>
+    <button class="btn" onclick="downloadJPEG('img10','PanelIQ_Logo10_Wordmark.jpg')">Save as JPEG</button>
+  </div>
+</div>
+
+<script>
+  function downloadJPEG(imgId, filename) {
+    const img = document.getElementById(imgId);
+    const W = 400, H = 420;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(0, 0, W, H);
+
+    const clone = new Image();
+    clone.crossOrigin = 'anonymous';
+    clone.onload = () => {
+      ctx.drawImage(clone, 0, 0, W, H);
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      }, 'image/jpeg', 0.95);
+    };
+    clone.src = img.src;
+  }
+
+  function downloadAll() {
+    const logos = [
+      ['img1',  'PanelIQ_Logo1_DataLens.jpg'],
+      ['img2',  'PanelIQ_Logo2_PanelGrid.jpg'],
+      ['img3',  'PanelIQ_Logo3_SpeechBubble.jpg'],
+      ['img4',  'PanelIQ_Logo4_IQSignal.jpg'],
+      ['img5',  'PanelIQ_Logo5_Compass.jpg'],
+      ['img6',  'PanelIQ_Logo6_Gauge.jpg'],
+      ['img7',  'PanelIQ_Logo7_Steps.jpg'],
+      ['img8',  'PanelIQ_Logo8_Nodes.jpg'],
+      ['img9',  'PanelIQ_Logo9_Hexagon.jpg'],
+      ['img10', 'PanelIQ_Logo10_Wordmark.jpg'],
+    ];
+    logos.forEach(([id, name], i) => {
+      setTimeout(() => downloadJPEG(id, name), i * 600);
+    });
+  }
+</script>
+</body>
+</html>

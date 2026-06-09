@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { askQuestion, getSuggestions } from './api/paneliq';
 import MessageBubble from './components/MessageBubble';
 import PromptSuggestions from './components/PromptSuggestions';
@@ -26,6 +27,7 @@ export default function App() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const suggestTimer = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -74,10 +76,12 @@ export default function App() {
       }
     }]);
 
-    try {
-      const result = await askQuestion(q);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-      // Replace loading with real result
+    try {
+      const result = await askQuestion(q, controller.signal);
+
       setMessages(prev => prev.map(m =>
         m.id === aiId ? {
           ...m,
@@ -96,18 +100,28 @@ export default function App() {
       ));
 
     } catch (err) {
+      const cancelled = axios.isCancel?.(err) || err?.name === 'CanceledError' || err?.name === 'AbortError';
       setMessages(prev => prev.map(m =>
         m.id === aiId ? {
           ...m,
           content: {
             loading: false,
-            error: 'Could not reach the backend. Is the server running?'
+            error: cancelled ? null : 'Could not reach the backend. Is the server running?',
+            cancelled,
           }
         } : m
       ));
     }
 
+    abortControllerRef.current = null;
     setLoading(false);
+    inputRef.current?.focus();
+  };
+
+  const stopAnalysis = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -342,23 +356,51 @@ export default function App() {
                   Math.min(e.target.scrollHeight, 100) + 'px';
               }}
             />
-            <button
-              onClick={() => sendMessage()}
-              disabled={loading || !input.trim()}
-              style={{
-                background: loading || !input.trim()
-                  ? '#1e2a40'
-                  : 'linear-gradient(135deg, #00d4ff, #7c6af7)',
-                border: 'none', borderRadius: '8px',
-                width: '36px', height: '36px',
-                cursor: loading || !input.trim() ? 'default' : 'pointer',
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'center', flexShrink: 0,
-                transition: 'all 0.2s', fontSize: '16px'
-              }}
-            >
-              {loading ? '⏳' : '➤'}
-            </button>
+            {loading ? (
+              <button
+                onClick={stopAnalysis}
+                title="Stop analysis"
+                style={{
+                  background: '#2a1a1a',
+                  border: '1px solid #ff4d4d55',
+                  borderRadius: '8px',
+                  width: '36px', height: '36px',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', flexShrink: 0,
+                  transition: 'all 0.2s', fontSize: '14px',
+                  color: '#ff6b6b',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#3a1a1a';
+                  e.currentTarget.style.borderColor = '#ff4d4d';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#2a1a1a';
+                  e.currentTarget.style.borderColor = '#ff4d4d55';
+                }}
+              >
+                ■
+              </button>
+            ) : (
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                style={{
+                  background: !input.trim()
+                    ? '#1e2a40'
+                    : 'linear-gradient(135deg, #00d4ff, #7c6af7)',
+                  border: 'none', borderRadius: '8px',
+                  width: '36px', height: '36px',
+                  cursor: !input.trim() ? 'default' : 'pointer',
+                  display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', flexShrink: 0,
+                  transition: 'all 0.2s', fontSize: '16px'
+                }}
+              >
+                ➤
+              </button>
+            )}
           </div>
           <div style={{
             fontSize: '10px', color: '#6b7a99',

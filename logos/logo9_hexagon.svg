@@ -1,0 +1,73 @@
+<svg width="400" height="420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g9" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <linearGradient id="g9fill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#7c6af7" stop-opacity="0.12"/>
+    </linearGradient>
+    <filter id="glow9">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="hex-clip">
+      <polygon points="200,78 296,132 296,240 200,294 104,240 104,132"/>
+    </clipPath>
+  </defs>
+
+  <rect width="400" height="420" fill="#0a0d14" rx="24"/>
+
+  <!-- Outer hex ring (decorative, faint) -->
+  <polygon points="200,62 308,124 308,248 200,310 92,248 92,124"
+    fill="none" stroke="#1e2a40" stroke-width="1" opacity="0.5"/>
+
+  <!-- Main hexagon fill -->
+  <polygon points="200,78 296,132 296,240 200,294 104,240 104,132"
+    fill="url(#g9fill)"/>
+
+  <!-- Main hexagon stroke — gradient glow -->
+  <polygon points="200,78 296,132 296,240 200,294 104,240 104,132"
+    fill="none" stroke="url(#g9)" stroke-width="5" filter="url(#glow9)"/>
+
+  <!-- Bar chart inside hexagon (clipped) -->
+  <g clip-path="url(#hex-clip)">
+    <!-- Grid lines -->
+    <line x1="104" y1="250" x2="296" y2="250" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="104" y1="225" x2="296" y2="225" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="104" y1="200" x2="296" y2="200" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="104" y1="175" x2="296" y2="175" stroke="#1e2a40" stroke-width="1"/>
+    <line x1="104" y1="150" x2="296" y2="150" stroke="#1e2a40" stroke-width="1"/>
+
+    <!-- Bars -->
+    <rect x="122" y="225" width="30" height="27" rx="4" fill="#00d4ff" opacity="0.55"/>
+    <rect x="162" y="205" width="30" height="47" rx="4" fill="#00d4ff" opacity="0.70"/>
+    <rect x="202" y="178" width="30" height="74" rx="4" fill="#7c6af7" opacity="0.75"/>
+    <rect x="242" y="152" width="30" height="100" rx="4" fill="#7c6af7" opacity="0.85"/>
+
+    <!-- Trend line -->
+    <polyline points="137,225 177,205 217,178 257,152"
+      fill="none" stroke="#00e5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <circle cx="137" cy="225" r="3.5" fill="#00e5a0" opacity="0.9"/>
+    <circle cx="177" cy="205" r="3.5" fill="#00e5a0" opacity="0.9"/>
+    <circle cx="217" cy="178" r="3.5" fill="#00e5a0" opacity="0.9"/>
+    <circle cx="257" cy="152" r="3.5" fill="#00e5a0" opacity="0.9"/>
+  </g>
+
+  <!-- Hex corner dots -->
+  <g fill="url(#g9)" filter="url(#glow9)">
+    <circle cx="200" cy="78"  r="5"/>
+    <circle cx="296" cy="132" r="5"/>
+    <circle cx="296" cy="240" r="5"/>
+    <circle cx="200" cy="294" r="5"/>
+    <circle cx="104" cy="240" r="5"/>
+    <circle cx="104" cy="132" r="5"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="200" y="348" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#e8edf5" font-weight="300" letter-spacing="1.5">Panel<tspan font-weight="800" fill="url(#g9)">IQ</tspan></text>
+  <text x="200" y="371" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6b7a99" letter-spacing="4">PANEL INTELLIGENCE</text>
+</svg>

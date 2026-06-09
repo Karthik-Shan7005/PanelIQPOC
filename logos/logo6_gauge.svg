@@ -1,0 +1,72 @@
+<svg width="400" height="420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g6arc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <linearGradient id="g6d" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c6af7"/>
+    </linearGradient>
+    <filter id="glow6">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="400" height="420" fill="#0a0d14" rx="24"/>
+
+  <!-- Gauge track (full arc 180°) -->
+  <!-- Arc from 180° to 0° = left to right semicircle, cx=200 cy=210 r=110 -->
+  <path d="M 90 210 A 110 110 0 0 1 310 210"
+    fill="none" stroke="#1e2a40" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Gauge fill — cyan segment (180° to ~100°) -->
+  <path d="M 90 210 A 110 110 0 0 1 145 107"
+    fill="none" stroke="#00d4ff" stroke-width="18" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Gauge fill — purple segment (~100° to ~30°) -->
+  <path d="M 145 107 A 110 110 0 0 1 255 107"
+    fill="none" stroke="#7c6af7" stroke-width="18" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Gauge fill — bright tip (~30° to 0°) -->
+  <path d="M 255 107 A 110 110 0 0 1 310 210"
+    fill="none" stroke="url(#g6d)" stroke-width="18" stroke-linecap="round"
+    filter="url(#glow6)"/>
+
+  <!-- Tick marks -->
+  <g stroke="#2a3850" stroke-width="2">
+    <line x1="90"  y1="210" x2="104" y2="210"/>
+    <line x1="97"  y1="152" x2="108" y2="161"/>
+    <line x1="145" y1="107" x2="152" y2="119"/>
+    <line x1="200" y1="100" x2="200" y2="114"/>
+    <line x1="255" y1="107" x2="248" y2="119"/>
+    <line x1="303" y1="152" x2="292" y2="161"/>
+    <line x1="310" y1="210" x2="296" y2="210"/>
+  </g>
+
+  <!-- Needle — pointing to high performance (~40° from right = 140° total) -->
+  <line x1="200" y1="210" x2="264" y2="118"
+    stroke="url(#g6d)" stroke-width="4" stroke-linecap="round" filter="url(#glow6)"/>
+
+  <!-- Needle base circle -->
+  <circle cx="200" cy="210" r="12" fill="#1e2a40" stroke="url(#g6d)" stroke-width="2.5"/>
+  <circle cx="200" cy="210" r="5" fill="url(#g6d)"/>
+
+  <!-- Labels -->
+  <text x="82"  y="232" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6b7a99">0</text>
+  <text x="192" y="92"  font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6b7a99">50</text>
+  <text x="310" y="232" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#00d4ff">100</text>
+
+  <!-- IQ score display -->
+  <text x="200" y="268" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="800" fill="url(#g6d)">92</text>
+  <text x="200" y="286" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="9" fill="#6b7a99" letter-spacing="2">PANEL SCORE</text>
+
+  <!-- Wordmark -->
+  <text x="200" y="348" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#e8edf5" font-weight="300" letter-spacing="1.5">Panel<tspan font-weight="800" fill="url(#g6d)">IQ</tspan></text>
+  <text x="200" y="371" text-anchor="middle"
+    font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6b7a99" letter-spacing="4">PANEL INTELLIGENCE</text>
+</svg>
