@@ -1,3 +1,14 @@
+import os
+import sys
+
+# Redirect stdout/stderr to a log file when running as a packaged exe
+if getattr(sys, 'frozen', False):
+    log_dir = os.path.join(os.environ.get('LOCALAPPDATA', ''), 'PanelIQ', 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    _log_file = open(os.path.join(log_dir, 'backend.log'), 'a', buffering=1)
+    sys.stdout = _log_file
+    sys.stderr = _log_file
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,10 +25,7 @@ app = FastAPI(
 # Allow React frontend to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",   # Vite dev server
-        "http://localhost:3000",   # Alternative React port
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

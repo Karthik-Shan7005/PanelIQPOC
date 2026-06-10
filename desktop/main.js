@@ -2,14 +2,27 @@ const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
+const net  = require('net');
 
-const BACKEND_PORT = 8000;
 const isDev = !app.isPackaged;
 
-let mainWindow = null;
+let mainWindow    = null;
 let backendProcess = null;
+let backendPort   = 8000;
 
-// ── Path resolution: dev vs packaged ────────────────────────────────────────
+// ── Single-instance lock ──────────────────────────────────────────────────────
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
+// ── Path resolution: dev vs packaged ─────────────────────────────────────────
 
 function frontendIndexPath() {
   if (isDev) {
@@ -18,74 +31,87 @@ function frontendIndexPath() {
   return path.join(process.resourcesPath, 'frontend', 'index.html');
 }
 
-// ── Backend lifecycle ────────────────────────────────────────────────────────
+// ── Free port detection ───────────────────────────────────────────────────────
 
-function startBackend() {
-  return new Promise((resolve, reject) => {
-    if (isDev) {
-      // Dev: spawn uvicorn from the backend folder
-      const backendDir = path.join(__dirname, '..', 'backend');
-      backendProcess = spawn('uvicorn', ['main:app', '--port', String(BACKEND_PORT)], {
-        cwd: backendDir,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: true,       // needed on Windows so PATH is resolved
-      });
-
-      backendProcess.on('error', (err) => {
-        reject(new Error(`Could not start uvicorn: ${err.message}\n\nMake sure uvicorn is installed:\n  pip install uvicorn`));
-      });
-
-      // Give uvicorn a moment to bind the port, then start polling
-      setTimeout(() => pollBackend(resolve, reject, 30), 2000);
-    } else {
-      // Packaged: spawn compiled backend exe
-      const exePath = path.join(process.resourcesPath, 'backend', 'paneliq_backend.exe');
-      backendProcess = spawn(exePath, [], {
-        stdio: 'ignore',
-        windowsHide: true,
-      });
-
-      backendProcess.on('error', (err) => {
-        reject(new Error(`Backend failed to launch: ${err.message}`));
-      });
-
-      setTimeout(() => pollBackend(resolve, reject, 30), 1500);
-    }
+function getFreePort() {
+  return new Promise((resolve) => {
+    const srv = net.createServer().listen(0, '127.0.0.1', () => {
+      const port = srv.address().port;
+      srv.close(() => resolve(port));
+    });
   });
 }
 
-function pollBackend(resolve, reject, attemptsLeft) {
-  if (attemptsLeft <= 0) {
+// ── Backend lifecycle ─────────────────────────────────────────────────────────
+
+async function startBackend() {
+  backendPort = await getFreePort();
+
+  return new Promise((resolve, reject) => {
+    if (isDev) {
+      const backendDir = path.join(__dirname, '..', 'backend');
+      const py = process.env.PANELIQ_PYTHON ||
+        'C:\\Users\\KarthikShanmugam\\.anaconda\\envs\\paneliq\\python.exe';
+
+      backendProcess = spawn(
+        py,
+        ['-m', 'uvicorn', 'main:app', '--port', String(backendPort)],
+        { cwd: backendDir, stdio: 'ignore', windowsHide: true }
+      );
+    } else {
+      const exePath = path.join(process.resourcesPath, 'backend', 'paneliq_backend.exe');
+      backendProcess = spawn(exePath, ['--port', String(backendPort)], {
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+    }
+
+    backendProcess.on('error', (err) => {
+      reject(new Error(`Backend failed to launch: ${err.message}`));
+    });
+
+    // Fail fast if the exe crashes immediately instead of waiting 30 s
+    backendProcess.on('exit', (code) => {
+      if (code !== 0 && code !== null) {
+        reject(new Error(
+          `PanelIQ backend crashed on startup (exit code ${code}).\n\n` +
+          `Check the diagnostic log at:\n` +
+          `  %LOCALAPPDATA%\\PanelIQ\\logs\\backend.log`
+        ));
+      }
+    });
+
+    setTimeout(() => pollBackend(resolve, reject, Date.now() + 30_000), 500);
+  });
+}
+
+function pollBackend(resolve, reject, deadlineMs) {
+  if (Date.now() > deadlineMs) {
     reject(new Error(
-      'PanelIQ backend did not respond after 30 seconds.\n\n' +
-      'This usually means:\n' +
-      '• uvicorn is not installed  (run: pip install uvicorn fastapi)\n' +
-      '• Port 8000 is blocked by another process\n\n' +
+      'PanelIQ backend did not respond within 30 seconds.\n\n' +
+      'Common causes:\n' +
+      '  • ODBC Driver 17 for SQL Server is not installed\n' +
+      '  • An antivirus blocked paneliq_backend.exe\n' +
+      '  • The paneliq.env config file is missing from %APPDATA%\\PanelIQ\\\n\n' +
+      'Diagnostic log: %LOCALAPPDATA%\\PanelIQ\\logs\\backend.log\n\n' +
       'Note: Database queries require the BA network or VPN.'
     ));
     return;
   }
 
-  const req = http.get(`http://127.0.0.1:${BACKEND_PORT}/health`, (res) => {
+  const req = http.get(`http://127.0.0.1:${backendPort}/health`, (res) => {
     if (res.statusCode === 200) {
       resolve();
     } else {
-      setTimeout(() => pollBackend(resolve, reject, attemptsLeft - 1), 1000);
+      setTimeout(() => pollBackend(resolve, reject, deadlineMs), 500);
     }
   });
 
-  req.on('error', () => {
-    setTimeout(() => pollBackend(resolve, reject, attemptsLeft - 1), 1000);
-  });
-
-  req.setTimeout(900, () => {
-    req.destroy();
-    setTimeout(() => pollBackend(resolve, reject, attemptsLeft - 1), 100);
-  });
+  req.on('error', () => setTimeout(() => pollBackend(resolve, reject, deadlineMs), 500));
+  req.setTimeout(800, () => { req.destroy(); });
 }
 
-// ── Windows ──────────────────────────────────────────────────────────────────
+// ── Windows ───────────────────────────────────────────────────────────────────
 
 function createLoadingWindow() {
   const win = new BrowserWindow({
@@ -119,9 +145,7 @@ function createMainWindow() {
   mainWindow.loadFile(frontendIndexPath());
   mainWindow.setMenuBarVisibility(false);
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+  mainWindow.on('closed', () => { mainWindow = null; });
 }
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
@@ -140,30 +164,25 @@ app.whenReady().then(async () => {
   }
 });
 
+// ── Process cleanup ───────────────────────────────────────────────────────────
+
 function killBackend() {
-  if (backendProcess) {
-    try {
-      // On Windows, kill the whole process tree so child processes don't linger
-      if (process.platform === 'win32') {
-        require('child_process').spawnSync('taskkill', ['/pid', String(backendProcess.pid), '/f', '/t']);
-      } else {
-        backendProcess.kill('SIGTERM');
-      }
-    } catch (_) {}
-    backendProcess = null;
+  if (!backendProcess) return;
+  const pid = backendProcess.pid;
+  backendProcess = null;
+  if (process.platform === 'win32') {
+    // /t kills the full process tree — required when shell:true spawns cmd.exe
+    require('child_process')
+      .spawn('taskkill', ['/pid', String(pid), '/f', '/t'],
+        { detached: true, stdio: 'ignore' })
+      .unref();
+  } else {
+    try { process.kill(pid, 'SIGTERM'); } catch (_) {}
   }
 }
 
-app.on('window-all-closed', () => {
-  killBackend();
-  app.quit();
-});
-
-app.on('before-quit', () => {
-  killBackend();
-});
-
-// Safety net: ensure cleanup even on unexpected exit
-process.on('exit', () => killBackend());
+app.on('window-all-closed', () => { killBackend(); app.quit(); });
+app.on('before-quit',       () => { killBackend(); });
+process.on('exit',   () => killBackend());
 process.on('SIGINT',  () => { killBackend(); process.exit(0); });
 process.on('SIGTERM', () => { killBackend(); process.exit(0); });

@@ -23,9 +23,14 @@
       "target": "nsis",
       "icon": "assets/icon.ico"
     },
+    "asar": true,
+    "asarUnpack": ["**/*.exe", "**/*.dll"],
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "deleteAppDataOnUninstall": false,
       "installerIcon": "assets/icon.ico",
       "shortcutName": "PanelIQ"
     },
