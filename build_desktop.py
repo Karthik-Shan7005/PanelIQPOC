@@ -27,6 +27,9 @@ FRONTEND = os.path.join(ROOT, 'frontend')
 DESKTOP = os.path.join(ROOT, 'desktop')
 BACKEND_DIST = os.path.join(DESKTOP, 'backend-dist')
 
+# Use the paneliq conda env where fastapi and all backend deps are installed
+PANELIQ_PYTHON = r'C:\Users\KarthikShanmugam\.anaconda\envs\paneliq\python.exe'
+
 def run(cmd, cwd=None, label=''):
     print(f'\n{"="*60}')
     print(f'  {label or cmd}')
@@ -47,7 +50,7 @@ for folder in ['build', 'dist']:
         shutil.rmtree(target)
 
 run(
-    'pyinstaller main.py '
+    f'"{PANELIQ_PYTHON}" -m PyInstaller main.py '
     '--name paneliq_backend '
     '--onefile '
     '--noconsole '
