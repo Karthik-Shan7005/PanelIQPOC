@@ -102,6 +102,16 @@ for folder in ['build', 'dist']:
     if os.path.exists(target):
         shutil.rmtree(target)
 
+# OpenSSL DLLs live in Library\bin — PyInstaller won't find them automatically
+ENV_ROOT    = os.path.dirname(PANELIQ_PYTHON)
+LIBSSL      = os.path.join(ENV_ROOT, 'Library', 'bin', 'libssl-3-x64.dll')
+LIBCRYPTO   = os.path.join(ENV_ROOT, 'Library', 'bin', 'libcrypto-3-x64.dll')
+
+for dll in [LIBSSL, LIBCRYPTO]:
+    if not os.path.isfile(dll):
+        sys.exit(f'ERROR: Required OpenSSL DLL not found: {dll}')
+print(f'[ok] OpenSSL DLLs found: libssl-3-x64.dll, libcrypto-3-x64.dll')
+
 run(
     f'"{PANELIQ_PYTHON}" -m PyInstaller main.py '
     '--name paneliq_backend '
@@ -123,7 +133,10 @@ run(
     '--collect-all=numpy '
     '--hidden-import=pyodbc '
     '--hidden-import=anyio._backends._asyncio '
-    '--exclude-module=tkinter ',
+    '--exclude-module=tkinter '
+    # Bundle OpenSSL DLLs — required on machines without conda/Anaconda
+    f'--add-binary "{LIBSSL};." '
+    f'--add-binary "{LIBCRYPTO};." ',
     cwd=BACKEND,
     label='Step 2/4 — Compiling Python backend (PyInstaller)'
 )
