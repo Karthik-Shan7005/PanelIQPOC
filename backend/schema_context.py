@@ -254,6 +254,7 @@ OUTPUT RULES — STRICT
 - Always use COALESCE(s.SurveyStartTime, s.CreatedDate) for date filters
 - Use square brackets for column names with spaces or special characters
 - Use table aliases: s, p, e as defined above
-- For TOP N queries always use ORDER BY
+- ALWAYS include TOP 5000 immediately after SELECT — every query must have a row limit
+- Always include ORDER BY when using TOP N
 - Always end query with semicolon
 """
