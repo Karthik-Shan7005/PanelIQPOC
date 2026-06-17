@@ -131,7 +131,7 @@ export default function App() {
 
     } catch (err) {
       const cancelled = err?.name === 'AbortError';
-      update({ loading: false, error: cancelled ? null : 'Could not reach the backend. Is the server running?', cancelled });
+      update({ loading: false, cancelled, error: cancelled ? null : (err?.message || 'Could not reach the backend.') });
     }
 
     abortControllerRef.current = null;
