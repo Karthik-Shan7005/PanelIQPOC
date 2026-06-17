@@ -1,11 +1,13 @@
+import asyncio
 import anthropic
 from config import ANTHROPIC_API_KEY
 from schema_context import SCHEMA_CONTEXT
 from sql_validator import validate_sql
 from database import run_query
-from result_formatter import clean_results, generate_summary, recommend_chart
+from result_formatter import SUMMARY_PROMPT, clean_results, recommend_chart
 
-client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+client       = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+async_client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
 
 def _strip_code_fences(text: str) -> str:
     """Remove markdown code fences Claude sometimes adds despite instructions."""
@@ -108,3 +110,103 @@ def process_question(question: str) -> dict:
         print(f"[QueryEngine] Unexpected error: {e}")
 
     return response
+
+
+# ── Streaming pipeline ────────────────────────────────────────────────────────
+
+async def process_question_stream(question: str):
+    """Async generator that yields SSE event dicts as the pipeline progresses."""
+
+    # Step 1: Stream SQL generation token by token
+    sql_chunks = []
+    try:
+        async with async_client.messages.stream(
+            model="claude-sonnet-4-6",
+            max_tokens=1000,
+            system=SCHEMA_CONTEXT,
+            messages=[{"role": "user", "content": question}],
+        ) as stream:
+            async for token in stream.text_stream:
+                sql_chunks.append(token)
+                yield {"type": "sql_chunk", "content": token}
+    except Exception as e:
+        yield {"type": "error", "content": f"Failed to generate SQL: {e}"}
+        return
+
+    sql = _strip_code_fences("".join(sql_chunks))
+    yield {"type": "sql_done", "content": sql}
+
+    # Step 2: Validate
+    validation = validate_sql(sql)
+    if not validation["valid"]:
+        yield {"type": "error", "content": f"SQL validation failed: {validation['reason']}"}
+        return
+
+    # Step 3: Execute query in thread pool (pyodbc is sync)
+    yield {"type": "status", "content": "Querying KpiReports database…"}
+    try:
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, run_query, sql)
+    except Exception as e:
+        yield {"type": "error", "content": str(e)}
+        return
+
+    if not result["success"]:
+        yield {"type": "error", "content": result["error"]}
+        return
+
+    result = clean_results(result)
+    yield {"type": "data", "content": {
+        "columns": result["columns"],
+        "rows":    result["rows"],
+        "row_count": result["row_count"],
+    }}
+
+    # Step 4: Stream analyst summary
+    if result["row_count"] == 0:
+        yield {"type": "summary_done", "content": {
+            "summary": "No data found for this query. Try adjusting the date range or filters.",
+            "followup": "Can you show me data for a different time period?",
+        }}
+        yield {"type": "chart", "content": recommend_chart(result["columns"], 0)}
+        yield {"type": "done"}
+        return
+
+    yield {"type": "status", "content": "Analysing results…"}
+
+    preview = result["rows"][:20]
+    result_text = (
+        f"Columns: {result['columns']}\nTotal rows: {result['row_count']}\nData:\n"
+        + "".join(f"  {row}\n" for row in preview)
+    )
+
+    summary_raw = []
+    try:
+        async with async_client.messages.stream(
+            model="claude-sonnet-4-6",
+            max_tokens=300,
+            system=SUMMARY_PROMPT,
+            messages=[{"role": "user", "content":
+                       f"Question asked: {question}\n\nResults:\n{result_text}"}],
+        ) as stream:
+            async for token in stream.text_stream:
+                summary_raw.append(token)
+                yield {"type": "summary_chunk", "content": token}
+    except Exception:
+        pass
+
+    # Parse SUMMARY / FOLLOWUP lines
+    full = "".join(summary_raw)
+    summary, followup = "", ""
+    for line in full.split("\n"):
+        if line.startswith("SUMMARY:"):
+            summary = line[len("SUMMARY:"):].strip()
+        elif line.startswith("FOLLOWUP:"):
+            followup = line[len("FOLLOWUP:"):].strip()
+
+    yield {"type": "summary_done", "content": {
+        "summary":  summary or full,
+        "followup": followup or "Would you like to filter this data further?",
+    }}
+    yield {"type": "chart", "content": recommend_chart(result["columns"], result["row_count"])}
+    yield {"type": "done"}

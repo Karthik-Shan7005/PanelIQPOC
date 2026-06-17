@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -11,8 +12,9 @@ if getattr(sys, 'frozen', False):
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from query_engine import process_question
+from query_engine import process_question, process_question_stream
 from prompt_advisor import get_suggestions
 
 # Initialize FastAPI app
@@ -65,6 +67,30 @@ async def ask(req: QuestionRequest):
 
     result = process_question(req.question.strip())
     return result
+
+@app.post("/ask/stream")
+async def ask_stream(req: QuestionRequest):
+    """Streaming endpoint — yields SSE events as the pipeline progresses."""
+    if not req.question or not req.question.strip():
+        async def _empty():
+            yield f"data: {json.dumps({'type': 'error', 'content': 'Question cannot be empty.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        return StreamingResponse(_empty(), media_type="text/event-stream")
+
+    async def _stream():
+        try:
+            async for event in process_question_stream(req.question.strip()):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'content': str(e)})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
 
 @app.post("/suggest")
 async def suggest(req: SuggestionRequest):

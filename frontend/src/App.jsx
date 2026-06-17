@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { askQuestion, getSuggestions } from './api/paneliq';
+import { askQuestionStream, getSuggestions } from './api/paneliq';
 import MessageBubble from './components/MessageBubble';
 import PromptSuggestions from './components/PromptSuggestions';
 import LogoPanelGrid from './components/LogoPanelGrid';
@@ -79,38 +79,59 @@ export default function App() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    try {
-      const result = await askQuestion(q, controller.signal);
-
+    const update = (patch) =>
       setMessages(prev => prev.map(m =>
-        m.id === aiId ? {
-          ...m,
-          content: {
-            loading: false,
-            sql: result.sql,
-            columns: result.columns,
-            rows: result.rows,
-            rowCount: result.row_count,
-            summary: result.summary,
-            followup: result.followup,
-            chartType: result.chart_type,
-            error: result.error || null,
-          }
-        } : m
+        m.id === aiId ? { ...m, content: { ...m.content, ...patch } } : m
       ));
+
+    try {
+      await askQuestionStream(q, (event) => {
+        switch (event.type) {
+          case 'sql_chunk':
+            update({ loadingText: 'Generating SQL…', sql: (prev => prev)('' ) });
+            setMessages(prev => prev.map(m => {
+              if (m.id !== aiId) return m;
+              return { ...m, content: { ...m.content, sql: (m.content.sql || '') + event.content } };
+            }));
+            break;
+          case 'sql_done':
+            update({ sql: event.content, loadingText: 'SQL ready — querying database…' });
+            break;
+          case 'status':
+            update({ loadingText: event.content });
+            break;
+          case 'data':
+            update({
+              columns:  event.content.columns,
+              rows:     event.content.rows,
+              rowCount: event.content.row_count,
+              loadingText: 'Analysing results…',
+            });
+            break;
+          case 'summary_chunk':
+            setMessages(prev => prev.map(m => {
+              if (m.id !== aiId) return m;
+              return { ...m, content: { ...m.content, summary: (m.content.summary || '') + event.content } };
+            }));
+            break;
+          case 'summary_done':
+            update({ summary: event.content.summary, followup: event.content.followup });
+            break;
+          case 'chart':
+            update({ chartType: event.content });
+            break;
+          case 'error':
+            update({ loading: false, error: event.content });
+            break;
+          case 'done':
+            update({ loading: false });
+            break;
+        }
+      }, controller.signal);
 
     } catch (err) {
-      const cancelled = axios.isCancel?.(err) || err?.name === 'CanceledError' || err?.name === 'AbortError';
-      setMessages(prev => prev.map(m =>
-        m.id === aiId ? {
-          ...m,
-          content: {
-            loading: false,
-            error: cancelled ? null : 'Could not reach the backend. Is the server running?',
-            cancelled,
-          }
-        } : m
-      ));
+      const cancelled = err?.name === 'AbortError';
+      update({ loading: false, error: cancelled ? null : 'Could not reach the backend. Is the server running?', cancelled });
     }
 
     abortControllerRef.current = null;

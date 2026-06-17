@@ -226,17 +226,17 @@ DATE INTERPRETATION — Translate natural language to T-SQL
 STANDARD JOINS
 ================================================================
 -- Survey to Projects:
-FROM KPISurveyData s
-JOIN KPIReportProjectData p ON s.ProjectId = p.Projectid
+FROM KPISurveyData s WITH (NOLOCK)
+JOIN KPIReportProjectData p WITH (NOLOCK) ON s.ProjectId = p.Projectid
 
 -- Survey to External:
-FROM KPISurveyData s
-LEFT JOIN KPIsurveydataExternal e ON s.UniqueId = e.uniqueid
+FROM KPISurveyData s WITH (NOLOCK)
+LEFT JOIN KPIsurveydataExternal e WITH (NOLOCK) ON s.UniqueId = e.uniqueid
 
 -- All three:
-FROM KPISurveyData s
-JOIN KPIReportProjectData p ON s.ProjectId = p.Projectid
-LEFT JOIN KPIsurveydataExternal e ON s.UniqueId = e.uniqueid
+FROM KPISurveyData s WITH (NOLOCK)
+JOIN KPIReportProjectData p WITH (NOLOCK) ON s.ProjectId = p.Projectid
+LEFT JOIN KPIsurveydataExternal e WITH (NOLOCK) ON s.UniqueId = e.uniqueid
 
 ================================================================
 TABLE ALIASES — always use these

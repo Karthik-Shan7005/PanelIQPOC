@@ -3,6 +3,7 @@ from config import ANTHROPIC_API_KEY
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
+# Exported so query_engine can reuse it for the streaming pipeline
 SUMMARY_PROMPT = """
 You are PanelIQ, an expert market research panel analyst.
 You have just run a query and received results from a panel database.

@@ -87,8 +87,8 @@ export default function MessageBubble({ message }) {
           </div>
         )}
 
-        {/* SQL chip */}
-        {content.sql && !content.loading && (
+        {/* SQL chip — shown as soon as SQL starts arriving, even while loading */}
+        {content.sql && (
           <div style={{
             background: '#0d1220', border: '1px solid #1e2a40',
             borderRadius: '8px', padding: '10px 14px',
@@ -107,13 +107,13 @@ export default function MessageBubble({ message }) {
           </div>
         )}
 
-        {/* Metric cards for single row results */}
-        {content.chartType === 'metric_cards' && !content.loading && (
+        {/* Metric cards — shown as soon as data arrives */}
+        {content.chartType === 'metric_cards' && content.rows?.length > 0 && (
           <MetricCards columns={content.columns} rows={content.rows} />
         )}
 
-        {/* Chart */}
-        {content.chartType !== 'metric_cards' && !content.loading && content.rows?.length > 0 && (
+        {/* Chart — shown as soon as data arrives */}
+        {content.chartType !== 'metric_cards' && content.rows?.length > 0 && (
           <ResultChart
             chartType={content.chartType}
             columns={content.columns}
@@ -121,8 +121,8 @@ export default function MessageBubble({ message }) {
           />
         )}
 
-        {/* Table */}
-        {!content.loading && content.rows?.length > 0 && (
+        {/* Table — shown as soon as data arrives */}
+        {content.rows?.length > 0 && (
           <ResultTable
             columns={content.columns}
             rows={content.rows}
@@ -130,8 +130,8 @@ export default function MessageBubble({ message }) {
           />
         )}
 
-        {/* Summary */}
-        {content.summary && !content.loading && (
+        {/* Summary — streams in progressively */}
+        {content.summary && (
           <div style={{
             background: 'linear-gradient(135deg, #0d1a2e, #0d1525)',
             border: '1px solid #1a2d4a',
@@ -140,7 +140,7 @@ export default function MessageBubble({ message }) {
             color: '#b8c8e0', marginTop: '8px'
           }}>
             <span style={{ color: '#00e5a0', marginRight: '6px' }}>💡</span>
-            <span dangerouslySetInnerHTML={{ __html: content.summary }} />
+            <span>{content.summary}</span>
           </div>
         )}
 
