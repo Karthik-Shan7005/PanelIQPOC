@@ -18,6 +18,7 @@ env/
 .env
 .env.local
 .env.*.local
+wizard_config.env
 
 # Logs
 *.log
@@ -44,6 +45,8 @@ desktop/backend-dist/
 # PyInstaller outputs
 backend/build/
 backend/dist/
+build_wizard/
+dist/
 *.spec
 
 # Temp Office lock files
