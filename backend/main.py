@@ -84,3 +84,14 @@ async def health():
         "ai_model": "claude-sonnet-4-20250514",
         "module": "Engagement POC"
     }
+
+
+if __name__ == '__main__':
+    import argparse
+    import uvicorn
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=8000)
+    args, _ = parser.parse_known_args()
+
+    uvicorn.run(app, host='127.0.0.1', port=args.port, log_level='error')

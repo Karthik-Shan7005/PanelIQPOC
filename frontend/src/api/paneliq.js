@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE = 'http://127.0.0.1:8000';
+const port = window.paneliqDesktop?.backendPort || 8000;
+const BASE = `http://127.0.0.1:${port}`;
 
 // Ask a question — full pipeline. Pass an AbortController signal to cancel.
 export async function askQuestion(question, signal) {
