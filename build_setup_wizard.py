@@ -45,16 +45,7 @@ def resolve_python():
 PYTHON = resolve_python()
 print(f"[ok] Using Python: {PYTHON}")
 
-# ── Ensure customtkinter is available ────────────────────────────────────────
-print("[..] Checking customtkinter...")
-r = subprocess.run(
-    [PYTHON, "-c", "import customtkinter"],
-    capture_output=True,
-)
-if r.returncode != 0:
-    print("[..] Installing customtkinter...")
-    subprocess.run([PYTHON, "-m", "pip", "install", "customtkinter", "--quiet"], check=True)
-print("[ok] customtkinter ready")
+print("[ok] No extra packages needed (Windows native dialogs only)")
 
 # ── Extra data files ──────────────────────────────────────────────────────────
 add_data_args = []
@@ -87,7 +78,6 @@ cmd = [
     "--name", "PanelIQ Prerequisites",
     "--onefile",
     "--noconsole",
-    "--collect-all=customtkinter",
     "--distpath", os.path.join(ROOT, "dist"),
     "--workpath", os.path.join(ROOT, "build_wizard"),
     "--specpath", os.path.join(ROOT, "build_wizard"),
