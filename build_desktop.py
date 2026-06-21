@@ -1,23 +1,15 @@
 """
-PanelIQ Desktop Build Script
-=============================
-Produces a standalone Windows .exe installer for the COO demo.
+Panel-IQ Build Script
+======================
+Produces a standalone Windows exe that serves the React frontend
+and FastAPI backend — no Electron, no Node.js runtime required.
 
 Steps:
-  1. Build React frontend  (npm run build)
-  2. Compile Python backend  (PyInstaller)
-  3. Install Electron deps  (npm install in desktop/)
-  4. Package with electron-builder
-
-Usage:
-  python build_desktop.py
-
-  Optional env vars:
-    PANELIQ_PYTHON   — path to python.exe in the paneliq conda env
-                       (auto-detected via `conda env list` if not set)
+  1. Build React frontend  (npm run build → frontend/dist)
+  2. Compile Python backend with bundled frontend  (PyInstaller)
 
 Output:
-  desktop/dist-electron/PanelIQ Setup 1.0.0.exe
+  dist/Panel-IQ.exe   — double-click to run; opens browser automatically
 """
 
 import json
@@ -26,11 +18,10 @@ import shutil
 import subprocess
 import sys
 
-ROOT         = os.path.dirname(os.path.abspath(__file__))
-BACKEND      = os.path.join(ROOT, 'backend')
-FRONTEND     = os.path.join(ROOT, 'frontend')
-DESKTOP      = os.path.join(ROOT, 'desktop')
-BACKEND_DIST = os.path.join(DESKTOP, 'backend-dist')
+ROOT     = os.path.dirname(os.path.abspath(__file__))
+BACKEND  = os.path.join(ROOT, 'backend')
+FRONTEND = os.path.join(ROOT, 'frontend')
+DIST     = os.path.join(ROOT, 'dist')
 
 
 def run(cmd, cwd=None, label=''):
@@ -44,8 +35,6 @@ def run(cmd, cwd=None, label=''):
 
 
 def resolve_paneliq_python():
-    """Return path to the paneliq conda env's python.exe.
-    Priority: PANELIQ_PYTHON env var → conda env list → fail with instructions."""
     override = os.environ.get('PANELIQ_PYTHON')
     if override:
         if os.path.isfile(override):
@@ -64,7 +53,6 @@ def resolve_paneliq_python():
     except Exception as e:
         print(f'WARN: conda lookup failed ({e}) — falling back to known path')
 
-    # Last resort: known path on this machine
     fallback = r'C:\Users\KarthikShanmugam\.anaconda\envs\paneliq\python.exe'
     if os.path.isfile(fallback):
         return fallback
@@ -94,31 +82,32 @@ if check.returncode != 0:
 print('[ok] All backend dependencies found in paneliq env')
 
 # ── Step 1: Build React frontend ─────────────────────────────────────────────
-run('npm run build', cwd=FRONTEND, label='Step 1/4 — Building React frontend (Vite)')
+run('npm run build', cwd=FRONTEND, label='Step 1/2 — Building React frontend (Vite)')
 
-# ── Step 2: Compile Python backend with PyInstaller ──────────────────────────
+FRONTEND_DIST = os.path.join(FRONTEND, 'dist')
+if not os.path.isdir(FRONTEND_DIST):
+    sys.exit('ERROR: frontend/dist not found after npm build.')
+print(f'[ok] Frontend built: {FRONTEND_DIST}')
+
+# ── Step 2: Compile Python backend (with bundled frontend) ───────────────────
 for folder in ['build', 'dist']:
     target = os.path.join(BACKEND, folder)
     if os.path.exists(target):
         shutil.rmtree(target)
 
-# OpenSSL DLLs live in Library\bin — PyInstaller won't find them automatically
-ENV_ROOT    = os.path.dirname(PANELIQ_PYTHON)
-LIBSSL      = os.path.join(ENV_ROOT, 'Library', 'bin', 'libssl-3-x64.dll')
-LIBCRYPTO   = os.path.join(ENV_ROOT, 'Library', 'bin', 'libcrypto-3-x64.dll')
+ENV_ROOT  = os.path.dirname(PANELIQ_PYTHON)
+LIBSSL    = os.path.join(ENV_ROOT, 'Library', 'bin', 'libssl-3-x64.dll')
+LIBCRYPTO = os.path.join(ENV_ROOT, 'Library', 'bin', 'libcrypto-3-x64.dll')
 
 for dll in [LIBSSL, LIBCRYPTO]:
     if not os.path.isfile(dll):
         sys.exit(f'ERROR: Required OpenSSL DLL not found: {dll}')
-print(f'[ok] OpenSSL DLLs found: libssl-3-x64.dll, libcrypto-3-x64.dll')
+print('[ok] OpenSSL DLLs found: libssl-3-x64.dll, libcrypto-3-x64.dll')
 
 run(
     f'"{PANELIQ_PYTHON}" -m PyInstaller main.py '
-    '--name paneliq_backend '
+    '--name "Panel-IQ" '
     '--onefile '
-    '--noconsole '
-    # NOTE: .env is NOT bundled — secrets are read from %APPDATA%\PanelIQ\paneliq.env
-    # collect-all bundles entire packages including submodules + data files
     '--collect-all=fastapi '
     '--collect-all=starlette '
     '--collect-all=pydantic '
@@ -134,28 +123,22 @@ run(
     '--hidden-import=pyodbc '
     '--hidden-import=anyio._backends._asyncio '
     '--exclude-module=tkinter '
-    # Bundle OpenSSL DLLs — required on machines without conda/Anaconda
     f'--add-binary "{LIBSSL};." '
-    f'--add-binary "{LIBCRYPTO};." ',
+    f'--add-binary "{LIBCRYPTO};." '
+    f'--add-data "{FRONTEND_DIST};frontend" ',
     cwd=BACKEND,
-    label='Step 2/4 — Compiling Python backend (PyInstaller)'
+    label='Step 2/2 — Compiling backend + bundling frontend (PyInstaller)'
 )
 
-# Copy compiled backend exe to desktop/backend-dist/
-if os.path.exists(BACKEND_DIST):
-    shutil.rmtree(BACKEND_DIST)
-os.makedirs(BACKEND_DIST)
-src_exe = os.path.join(BACKEND, 'dist', 'paneliq_backend.exe')
-shutil.copy2(src_exe, os.path.join(BACKEND_DIST, 'paneliq_backend.exe'))
-print(f'Backend exe copied to desktop/backend-dist/')
-
-# ── Step 3: Install Electron dependencies ────────────────────────────────────
-run('npm install', cwd=DESKTOP, label='Step 3/4 — Installing Electron dependencies')
-
-# ── Step 4: Package with electron-builder ────────────────────────────────────
-run('npm run build:win', cwd=DESKTOP, label='Step 4/4 — Packaging with electron-builder')
+# ── Copy output to dist/ ──────────────────────────────────────────────────────
+os.makedirs(DIST, exist_ok=True)
+src_exe = os.path.join(BACKEND, 'dist', 'Panel-IQ.exe')
+dst_exe = os.path.join(DIST, 'Panel-IQ.exe')
+shutil.copy2(src_exe, dst_exe)
+size_mb = os.path.getsize(dst_exe) / 1_048_576
 
 print('\n' + '='*60)
 print('  BUILD COMPLETE')
-print(f'  Installer: desktop/dist-electron/PanelIQ Setup 1.0.0.exe')
+print(f'  App:       dist/Panel-IQ.exe  ({size_mb:.0f} MB)')
+print(f'  Prereqs:   dist/Panel-IQ Prerequisites.exe  (run once per machine)')
 print('='*60)

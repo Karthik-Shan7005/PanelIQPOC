@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const port = window.paneliqDesktop?.backendPort || 8000;
-const BASE = `http://127.0.0.1:${port}`;
+// Production: frontend is served by FastAPI on the same origin — use relative URLs.
+// Development: Vite runs on a different port — point explicitly at the backend.
+const BASE = import.meta.env.PROD ? '' : 'http://127.0.0.1:8000';
 
 // Ask a question — streaming SSE pipeline via XHR (more reliable than fetch
 // in Electron's file:// renderer context where res.body can be null).

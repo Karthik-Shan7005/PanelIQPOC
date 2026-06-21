@@ -88,10 +88,9 @@ export default function App() {
       await askQuestionStream(q, (event) => {
         switch (event.type) {
           case 'sql_chunk':
-            update({ loadingText: 'Generating SQL…', sql: (prev => prev)('' ) });
             setMessages(prev => prev.map(m => {
               if (m.id !== aiId) return m;
-              return { ...m, content: { ...m.content, sql: (m.content.sql || '') + event.content } };
+              return { ...m, content: { ...m.content, loadingText: 'Generating SQL…', sql: (m.content.sql || '') + event.content } };
             }));
             break;
           case 'sql_done':
@@ -177,7 +176,7 @@ export default function App() {
               <div style={{
                 fontWeight: '800', fontSize: '17px', letterSpacing: '-0.5px'
               }}>
-                PanelIQ
+                Panel-IQ
               </div>
               <div style={{ fontSize: '10px', color: '#6b7a99' }}>
                 Panel Intelligence

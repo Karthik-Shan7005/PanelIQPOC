@@ -1,13 +1,29 @@
 import asyncio
+import re
 import anthropic
 from config import ANTHROPIC_API_KEY
-from schema_context import SCHEMA_CONTEXT
+from schema_context import SCHEMA_CONTEXT, AGGREGATE_SCHEMA
 from sql_validator import validate_sql
 from database import run_query
 from result_formatter import SUMMARY_PROMPT, clean_results, recommend_chart
 
 client       = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 async_client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+
+# Keywords that require row-level KPISurveyData detail
+_DETAIL_KEYWORDS = re.compile(
+    r'\b(screenout|screen.out|terminat|dropout|drop.out|quota.full|quality|reject|fraud|'
+    r'click.rate|conversion.rate|conv.rate|incidence.rate|ir%|click\s+rate|conv\s+rate|'
+    r'today|yesterday|this\s+week|last\s+7\s+days|device|browser|panel.source|'
+    r'internal\s+vs|external\s+vs|tps\s+vs|status\s+breakdown|status\s+group)\b',
+    re.IGNORECASE
+)
+
+def _choose_schema(question: str) -> str:
+    """Return AGGREGATE_SCHEMA for simple totals, SCHEMA_CONTEXT for detail queries."""
+    if _DETAIL_KEYWORDS.search(question):
+        return SCHEMA_CONTEXT
+    return AGGREGATE_SCHEMA
 
 def _strip_code_fences(text: str) -> str:
     """Remove markdown code fences Claude sometimes adds despite instructions."""
@@ -23,14 +39,11 @@ def _strip_code_fences(text: str) -> str:
     return text
 
 def generate_sql(question: str) -> str:
-    """
-    Send question to Claude with schema context.
-    Returns generated SQL string.
-    """
+    """Send question to Claude with the appropriate schema and return SQL."""
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1000,
-        system=SCHEMA_CONTEXT,
+        system=_choose_schema(question),
         messages=[{"role": "user", "content": question}]
     )
     return _strip_code_fences(response.content[0].text)
@@ -117,21 +130,29 @@ def process_question(question: str) -> dict:
 async def process_question_stream(question: str):
     """Async generator that yields SSE event dicts as the pipeline progresses."""
 
-    # Step 1: Stream SQL generation token by token
+    # Step 1: Stream SQL generation token by token (retry once on connection error)
     sql_chunks = []
-    try:
-        async with async_client.messages.stream(
-            model="claude-sonnet-4-6",
-            max_tokens=1000,
-            system=SCHEMA_CONTEXT,
-            messages=[{"role": "user", "content": question}],
-        ) as stream:
-            async for token in stream.text_stream:
-                sql_chunks.append(token)
-                yield {"type": "sql_chunk", "content": token}
-    except Exception as e:
-        yield {"type": "error", "content": f"Failed to generate SQL: {e}"}
-        return
+    for attempt in range(2):
+        sql_chunks = []
+        try:
+            async with async_client.messages.stream(
+                model="claude-sonnet-4-6",
+                max_tokens=1000,
+                system=_choose_schema(question),
+                messages=[{"role": "user", "content": question}],
+            ) as stream:
+                async for token in stream.text_stream:
+                    sql_chunks.append(token)
+                    yield {"type": "sql_chunk", "content": token}
+            break  # success — exit retry loop
+        except Exception as e:
+            err = str(e)
+            if attempt == 0 and ('connect' in err.lower() or 'connection' in err.lower()):
+                yield {"type": "status", "content": "Connection issue — retrying…"}
+                await asyncio.sleep(2)
+                continue
+            yield {"type": "error", "content": f"Failed to generate SQL: {e}"}
+            return
 
     sql = _strip_code_fences("".join(sql_chunks))
     yield {"type": "sql_done", "content": sql}
@@ -146,7 +167,16 @@ async def process_question_stream(question: str):
     yield {"type": "status", "content": "Querying KpiReports database…"}
     try:
         loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, run_query, sql)
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, run_query, sql),
+            timeout=300
+        )
+    except asyncio.TimeoutError:
+        yield {"type": "error", "content": (
+            "The query took too long to run. "
+            "Try narrowing the date range or filtering by a specific market."
+        )}
+        return
     except Exception as e:
         yield {"type": "error", "content": str(e)}
         return
