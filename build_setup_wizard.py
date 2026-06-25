@@ -78,6 +78,7 @@ cmd = [
     "--name", "PanelIQ Prerequisites",
     "--onefile",
     "--noconsole",
+    "--uac-admin",
     "--distpath", os.path.join(ROOT, "dist"),
     "--workpath", os.path.join(ROOT, "build_wizard"),
     "--specpath", os.path.join(ROOT, "build_wizard"),

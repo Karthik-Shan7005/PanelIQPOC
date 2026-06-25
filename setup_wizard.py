@@ -104,6 +104,7 @@ def check_odbc() -> bool:
         winreg.OpenKey(
             winreg.HKEY_LOCAL_MACHINE,
             r"SOFTWARE\ODBC\ODBCINST.INI\ODBC Driver 17 for SQL Server",
+            access=winreg.KEY_READ | winreg.KEY_WOW64_64KEY,
         )
         return True
     except FileNotFoundError:
@@ -118,11 +119,12 @@ def bundled_msi() -> Path | None:
 
 def install_odbc(msi: Path) -> bool:
     r = subprocess.run(
-        ["msiexec", "/i", str(msi), "/quiet", "/norestart",
+        ["msiexec", "/i", str(msi), "/qn", "/norestart",
          "IACCEPTMSODBCSQLLICENSETERMS=YES"],
         capture_output=True,
     )
-    return r.returncode == 0
+    # 0 = success, 3010 = success + reboot recommended
+    return r.returncode in (0, 3010)
 
 
 # ── Env file writer ───────────────────────────────────────────────────────────
